@@ -1,0 +1,5 @@
+# Ignore all files or directories starting with "scratch"
+scratch*
+
+# Ignore the 'logs' folder and everything inside it
+logs/
