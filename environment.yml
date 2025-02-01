@@ -1,0 +1,11 @@
+name: ai-dm
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - pip
+  - pip:
+      # Install a modern LangChain that supports Runnable Pipelines
+      - langchain>=0.1.3
+      # Install langchain-ollama for the OllamaLLM integration
+      - langchain-ollama>=0.0.5
