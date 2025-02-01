@@ -10,7 +10,7 @@ from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 logs_dir = "./logs"
 os.makedirs(logs_dir, exist_ok=True)
 
-# Set your root logger (or script logger) as before
+# Configure logging
 logging.basicConfig(
     filename="logs/debug.log",
     filemode="a",
@@ -19,14 +19,32 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S"
 )
 
-# Suppress debug logs from httpx and httpcore by setting their log level higher
+# Suppress debug logs from httpx and httpcore
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 model = "mistral:7b-instruct-v0.3-q4_0"
 
+def build_prompt(conversation_history, new_question):
+    """
+    Build a prompt that includes the entire conversation history
+    plus the latest user question. This is a simple example:
+    """
+    prompt = "You are a helpful AI assistant. The conversation so far is:\n"
+
+    for entry in conversation_history:
+        role = entry["role"]
+        content = entry["content"]
+        if role == "human":
+            prompt += f"Human: {content}\n"
+        else:  # role == "ai"
+            prompt += f"AI: {content}\n"
+
+    prompt += f"Human: {new_question}"
+    return prompt
+
 def main():
-    logging.debug("starting main")
+    logging.debug("Starting main function")
 
     # Create the OllamaLLM instance
     llm = OllamaLLM(
@@ -36,24 +54,36 @@ def main():
     )
     logging.debug(f"{model} OllamaLLM initialized.")
 
-    print("Continuous interactive session. Type 'exit' to quit.\n")
+    # Initialize a list to store the conversation history
+    conversation_history = []
+
+    print("Continuous interactive session with chat history. Type 'exit' to quit.\n")
 
     while True:
-        question = input("You: ")
-        logging.debug(f"[Human] {question}")
+        user_input = input("You: ")
 
-        if question.strip().lower() == "exit":
+        if user_input.strip().lower() == "exit":
             print("Exiting. Goodbye!")
-            logging.debug("user requested exit. exiting program.")
+            logging.debug("User requested exit. Exiting program.")
             break
 
-        response = llm.invoke(question)
-        logging.debug(f"[AI] {response}")
+        # Build a prompt that contains the entire conversation so far + the new user input
+        prompt = build_prompt(conversation_history, user_input)
+        logging.debug(f"\n-----[Full Prompt]-----\n\n{prompt}\n\n----- END OF PROMPT -----\n")
 
+        # Invoke the model with the prompt
+        response = llm.invoke(prompt)
+        logging.debug(f"\n-----[AI Response]-----\n\n{response}\n\n----- END OF AI RESPONSE -----\n")
+
+        # Print a newline after streaming finishes
         print()
         print("-" * 10, "End of Response", "-" * 10, "\n")
 
-    logging.debug("main complete")
+        # Update conversation history
+        conversation_history.append({"role": "human", "content": user_input})
+        conversation_history.append({"role": "ai", "content": response})
+
+    logging.debug("Main function complete.")
 
 if __name__ == "__main__":
     main()
