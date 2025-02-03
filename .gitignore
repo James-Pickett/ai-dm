@@ -3,3 +3,5 @@ scratch*
 
 # Ignore the 'logs' folder and everything inside it
 logs/
+chroma_db/
+__pycache__/
