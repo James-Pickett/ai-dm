@@ -2,6 +2,8 @@
 
 I'm building an AI-powered Dungeon Master because I'm tired of always being the DM when I play with my family!
 
+For now, I'm only focused on the narrative aspect of Dungeon Mastering, leaving out all the mechanical rules like combat and ability checks.
+
 The biggest challenge I've encountered is maintaining a consistent story over a long campaign, solving this is my primary focus. Hopefully, once this is reasonably solved for, I can start to iterate on the design, possibly training / fine tuning / distilling smaller, more efficient models.
 
 ## Considerations
