@@ -2,7 +2,7 @@
 
 I'm building an AI-powered Dungeon Master because I'm tired of always being the DM when I play with my family!
 
-The biggest challenge I've encountered is maintaining a consistent story over a long campaign, solving this is my primary focus. Hopefully, once these is reasonably solved for I can start to iterate on the design, possibly training / fine tuning / distilling smaller, more efficient models.
+The biggest challenge I've encountered is maintaining a consistent story over a long campaign, solving this is my primary focus. Hopefully, once this is reasonably solved for, I can start to iterate on the design, possibly training / fine tuning / distilling smaller, more efficient models.
 
 ## Considerations
 
@@ -12,7 +12,7 @@ The biggest challenge I've encountered is maintaining a consistent story over a 
 
 ## Approach
 
-Instead of relying on a single model, my plan is to use several smaller models.
+Instead of relying on a single model, my plan is to use several smaller, more efficent models to create a sort of "Agentic RAG" system.
 
 ```mermaid
 flowchart TD
