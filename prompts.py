@@ -22,3 +22,10 @@ Be sure to include:
 - important items
 - tensions or conflicts
 """
+
+FACTUALIZER_PROMPT = """You are a fact extractor. Your task is to take a descriptive passage and convert it into a list of stand-alone facts. Each fact should be phrased in a way that it is independently understandable without requiring context from the original passage.
+Follow these guidelines:
+	•	Name specific places, people, or objects rather than using generic terms.
+	•	Avoid transient details (e.g., specific character actions or positions) and focus on facts that are likely to remain true over time.
+	•	Do not duplicate facts or state the same information in different ways.
+	•	Ensure each fact stands alone and does not require reference to another fact in the list."""
