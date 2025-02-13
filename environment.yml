@@ -6,8 +6,4 @@ dependencies:
   - python=3.10
   - pip
   - pip:
-      - ollama
-      - chromadb
-      - pydantic>=2.0
-      - pydantic_core
-      - nomic
+    - mlx_lm

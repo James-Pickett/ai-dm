@@ -4,3 +4,4 @@ scratch*
 __pycache__/
 chroma_db/
 game_data/
+debug/
