@@ -5,7 +5,7 @@ class _Model:
     def __init__(self, model_path, custom_model_name):
         if not model_path:
             raise ValueError("model name cannot be empty")
-        self.llm_name = model_path
+        self.model_path = model_path
         self.custom_model_name = custom_model_name
         self.model, self.tokenizer = mlx_lm.load(model_path)
 
@@ -16,36 +16,47 @@ class _Model:
         if self.tokenizer.chat_template is not None:
             prompt = self.tokenizer.apply_chat_template(messages, add_generation_prompt=True)
 
-        logging.debug(f"sending to {self.custom_model_name} {self.llm_name} {messages}")
+        logging.debug(f"sending to {self.custom_model_name} {self.model_path} {messages}")
         logging.debug(f"context size: {len(prompt)} characters")
 
-        return mlx_lm.generate(self.model, self.tokenizer, prompt=prompt, max_tokens=-1)
+        return mlx_lm.generate(self.model, self.tokenizer, prompt=prompt, max_tokens=5000)
 
 class DungeonMaster(_Model):
     def __init__(self, model_path, custom_model_name, system_prompt):
         super().__init__(model_path, custom_model_name)
         self.system_prompt = system_prompt
 
-    def chat(self, player_input, scene_summary=None):
-        prompt = self.create_prompt(player_input, scene_summary)
+    def chat(self, player_input, game_notes):
+        prompt = self.create_prompt(player_input, game_notes)
         messages = [{"role": "user", "content": prompt}]
         response = super().chat(messages, self.system_prompt)
         return response
 
-    def create_prompt(self, player_input, scene_summary=None):
-        if scene_summary is None or scene_summary == "":
+    def create_prompt(self, player_input, game_notes):
+        if game_notes is None or game_notes == "":
             return player_input
 
-        prompt = f"Scene Summary:\n{scene_summary}\n"
-        prompt += f"Player Input: {player_input}"
+        prompt = f"Game Notes:\n{game_notes}\n"
+        prompt += f"Player Input:\n{player_input}"
         return prompt
 
-class Summarizer(_Model):
+class NoteTaker(_Model):
     def __init__(self, model_path, custom_model_name, system_prompt):
         super().__init__(model_path, custom_model_name)
         self.system_prompt = system_prompt
 
-    def chat(self, prompt):
+    def chat(self, player_input, dungeon_master_response, game_notes):
+        prompt = self.create_prompt(player_input, dungeon_master_response, game_notes)
         messages = [{"role": "user", "content": prompt}]
         return super().chat(messages, self.system_prompt)
+
+    def create_prompt(self, game_notes, player_input, dungeon_master_response):
+        prompt = f"Player Input:\n{player_input}\nDungeon Master Response:\n{dungeon_master_response}"
+
+        if game_notes is None or game_notes == "":
+            return prompt
+
+        return f"Game Notes:\n{game_notes}\n{prompt}"
+
+
 

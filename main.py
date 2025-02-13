@@ -15,9 +15,9 @@ def init_dungeon_master(config):
 
     return models.DungeonMaster(model_name, "Dungeon Master", system_prompt)
 
-def init_summarizer(config):
-    model_name = config.get("summarizer_model")
-    system_prompt = config.get("summarizer_system_prompt")
+def init_note_taker(config):
+    model_name = config.get("note_taker_model")
+    system_prompt = config.get("note_taker_system_prompt")
 
     if not model_name:
         raise ValueError("model name cannot be empty")
@@ -25,16 +25,16 @@ def init_summarizer(config):
     if not system_prompt:
         raise ValueError("system prompt cannot be empty")
 
-    return models.Summarizer(model_name, "Summarizer", system_prompt)
+    return models.NoteTaker(model_name, "Note Taker", system_prompt)
 
 if __name__ == '__main__':
     my_logging.setup()
 
     config = config.load('./config.yml')
     dungeon_master = init_dungeon_master(config)
-    summarizer = init_summarizer(config)
+    note_taker = init_note_taker(config)
 
-    scene_summary = storage.load_scene_summary()
+    current_notes = storage.load_game_notes()
 
     while True:
         user_input = input("You: ").strip()
@@ -42,9 +42,13 @@ if __name__ == '__main__':
             print("Goodbye!")
             break
 
-        response = dungeon_master.chat(user_input, scene_summary)
-        print("Dungeon Master:", response)
+        print("\n ---------- \n")
 
-        new_scene_summary = summarizer.chat(response)
-        scene_summary = new_scene_summary
-        storage.save_scene_summary(scene_summary)
+        dungeon_master_response = dungeon_master.chat(user_input, current_notes)
+        print(f"Dungeon Master: {dungeon_master_response}")
+
+        print("\n ========== \n")
+
+        new_game_notes = note_taker.chat(current_notes, user_input, dungeon_master_response)
+        current_notes = new_game_notes
+        storage.save_game_notes(current_notes)
