@@ -34,3 +34,12 @@ class DungeonMaster(_Model):
         self.chat_history.append({"role": "assistant", "content": response})
         return response
 
+class Summarizer(_Model):
+    def __init__(self, model_path, custom_model_name, system_prompt):
+        super().__init__(model_path, custom_model_name)
+        self.system_prompt = system_prompt
+
+    def chat(self, prompt):
+        messages = [{"role": "user", "content": prompt}]
+        return super().chat(messages, self.system_prompt)
+
