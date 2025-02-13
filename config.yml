@@ -1,1 +1,10 @@
-dungeon_master_model: "mlx-community/Mistral-7B-Instruct-v0.3-4bit"
+# I use this one while testing becuase it's fast
+dungeon_master_model: "mlx-community/SmolLM2-135M-Instruct"
+
+# dungeon_master_model: "mlx-community/Mistral-7B-Instruct-v0.3-4bit"
+
+dungeon_master_system_prompt: |
+  You are an imaginative and adaptive Dungeon Master for a fantasy role-playing game.
+  Your role is to create a rich, immersive world filled with mystery, magic, and adventure.
+  The players control the actions of their characters, while you control the world and its inhabitants.
+
