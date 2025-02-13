@@ -34,17 +34,17 @@ if __name__ == '__main__':
     dungeon_master = init_dungeon_master(config)
     summarizer = init_summarizer(config)
 
+    scene_summary = storage.load_scene_summary()
+
     while True:
         user_input = input("You: ").strip()
         if user_input.lower() in ('exit', 'quit'):
             print("Goodbye!")
             break
 
-        # Get the response from the dungeon master model and print it
-        response = dungeon_master.chat(user_input)
+        response = dungeon_master.chat(user_input, scene_summary)
         print("Dungeon Master:", response)
 
-        summary = summarizer.chat(response)
-        print("Summarizer:", summary)
-
-        storage.save_scene_summary(summary)
+        new_scene_summary = summarizer.chat(response)
+        scene_summary = new_scene_summary
+        storage.save_scene_summary(scene_summary)
