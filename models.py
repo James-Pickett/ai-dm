@@ -1,4 +1,4 @@
-import mlx_lm
+import ollama
 import logging
 
 class _Model:
@@ -9,21 +9,21 @@ class _Model:
         self.custom_model_name = custom_model_name
         self.system_prompt = system_prompt
 
-        self.model, self.tokenizer = mlx_lm.load(model_path)
-
     def chat(self, messages):
         if self.system_prompt is not None and self.system_prompt != "":
             messages.insert(0, {"role": "system", "content": self.system_prompt})
 
-        if self.tokenizer.chat_template is not None:
-            prompt = self.tokenizer.apply_chat_template(messages)
-
         logging.debug(f"sending to {self.custom_model_name} {self.model_path} {messages}")
-        logging.debug(f"context size: {len(prompt)} characters")
 
-        return mlx_lm.generate(self.model, self.tokenizer, prompt=prompt, max_tokens=5000)
+        options={
+            "temperature": 0.8,
+            "repeat_penalty": 1.05,
+            "min_p": 0.025,
+        }
 
-class DungeonMaster(_Model):
+        return ollama.chat(model=self.model_path, messages=messages, options=options).message.content
+
+class GameMaster(_Model):
     def __init__(self, model_path, custom_model_name, system_prompt):
         super().__init__(model_path, custom_model_name, system_prompt)
 
@@ -44,13 +44,13 @@ class NoteTaker(_Model):
     def __init__(self, model_path, custom_model_name, system_prompt):
         super().__init__(model_path, custom_model_name, system_prompt)
 
-    def chat(self, player_input, dungeon_master_response, game_notes):
-        prompt = self.create_prompt(player_input, dungeon_master_response, game_notes)
+    def chat(self, player_input, game_master_response, game_notes):
+        prompt = self.create_prompt(player_input, game_master_response, game_notes)
         messages = [{"role": "user", "content": prompt}]
         return super().chat(messages)
 
-    def create_prompt(self, game_notes, player_input, dungeon_master_response):
-        prompt = f"Player Input:\n{player_input}\nDungeon Master Response:\n{dungeon_master_response}"
+    def create_prompt(self, game_notes, player_input, game_master_response):
+        prompt = f"Player Input:\n{player_input}\nGame Master Response:\n{game_master_response}"
 
         if game_notes is None or game_notes == "":
             return prompt
