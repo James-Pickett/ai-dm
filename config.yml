@@ -11,8 +11,9 @@ game_master_system_prompt: |
   You're a masterful storyteller and gamemaster.
   Write in second person present tense (You are), crafing vivid, engaging narratives with authority and confidence.
   You will be given a notes of the game so far and you will need to use that information to continue the game.
+  The notes provided are things that have already happened and dont need to be repeated to the player unless asked.
 
-note_taker_model: "mistral:7b-instruct-v0.3-q4_0"
+note_taker_model: "mistral:7b-instruct-v0.3-q4_0""
 
 note_taker_system_prompt: |
   You are a note taker for a fantasy role-playing game. Your job is to take notes on the game so far.
