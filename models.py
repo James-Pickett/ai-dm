@@ -41,10 +41,11 @@ class GameMaster(_Model):
 
     def create_prompt(self, player_input, game_notes):
         if game_notes is None or game_notes == "":
-            return player_input
+            return f"Lets start the scene, here is the player input\n---\n{player_input}\n---\n"
 
-        prompt = f"Game Notes:\n{game_notes}\n"
-        prompt += f"Player Input:\n{player_input}"
+        prompt = f"Please continue the scene from these notes\n---\n{game_notes}\n---\n"
+        prompt += "The player is aware of the notes, no need to repeat them or reset the scene unless asked.\n"
+        prompt += f"Here is the player input\n---\n{player_input}\n---\n"
         return prompt
 
 class NoteTaker(_Model):
@@ -57,12 +58,14 @@ class NoteTaker(_Model):
         return super().generate(messages)
 
     def create_prompt(self, game_notes, player_input, game_master_response):
-        prompt = f"Player Input:\n{player_input}\nGame Master Response:\n{game_master_response}"
+        prompt = f"Take notes on the current scene\n---\nHere is the players input\n---\n{player_input}\n---\n"
+        prompt += f"Here is the game master's response\n---\n{game_master_response}\n---\n"
 
         if game_notes is None or game_notes == "":
             return prompt
 
-        return f"Game Notes:\n{game_notes}\n{prompt}"
+        prompt += f"Here are your last notes on the current scene\n---\n{game_notes}\n---\n"
+        return prompt
 
 
 
