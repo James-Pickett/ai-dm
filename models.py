@@ -34,18 +34,22 @@ class GameMaster(_Model):
     def __init__(self, model_path, custom_model_name, system_prompt):
         super().__init__(model_path, custom_model_name, system_prompt)
 
-    def chat_stream(self, player_input, game_notes):
-        prompt = self.create_prompt(player_input, game_notes)
+    def chat_stream(self, player_input, game_notes, vector_search_results):
+        prompt = self.create_prompt(player_input, game_notes, vector_search_results)
         messages = [{"role": "user", "content": prompt}]
         return super().generate_stream(messages)
 
-    def create_prompt(self, player_input, game_notes):
+    def create_prompt(self, player_input, game_notes, vector_search_results):
         if game_notes is None or game_notes == "":
-            return f"Lets start the scene, here is the player input\n---\n{player_input}\n---\n"
+            return f"Lets start the scene, here is the player input:\n---\n{player_input}\n---\n"
 
-        prompt = f"Please continue the scene from these notes\n---\n{game_notes}\n---\n"
+        prompt = f"Please continue the scene from these notes:\n---\n{game_notes}\n---\n"
+
+        if vector_search_results is not None and vector_search_results != "":
+            prompt += f"Here is some additional information about the overall campaign:\n---\n{vector_search_results}\n---\n"
+
         prompt += "The player is aware of the notes, no need to repeat them or reset the scene unless asked.\n"
-        prompt += f"Here is the player input\n---\n{player_input}\n---\n"
+        prompt += f"Here is the player input:\n---\n{player_input}\n---\n"
         return prompt
 
 class NoteTaker(_Model):

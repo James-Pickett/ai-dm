@@ -44,14 +44,18 @@ if __name__ == '__main__':
 
         print("\n ---------- \n")
 
+        vector_search_results = storage.search_vector_db(user_input + current_notes)
+
         # Stream the game master's response to the terminal.
         print("Game Master: ", end="", flush=True)
         game_master_response = ""
-        for token in game_master.chat_stream(user_input, current_notes):
+        for token in game_master.chat_stream(user_input, current_notes, vector_search_results):
             game_master_response += token
             print(token, end="", flush=True)
 
         print("\n\n ========== \n")
+
+        storage.save_to_vector_db(user_input + " " + game_master_response)
 
         new_game_notes = note_taker.chat(current_notes, user_input, game_master_response)
         current_notes = new_game_notes
