@@ -39,7 +39,7 @@ if __name__ == '__main__':
 
         print("\n ---------- \n")
 
-        vector_search_results = storage.search_vector_db(user_input + current_notes + last_game_master_response)
+        vector_search_results = storage.search_vector_db(f"{user_input} {current_notes} {last_game_master_response}")
         gamemaster_input = prompt_builder.gamemaster_prompt(user_input, current_notes, vector_search_results)
 
         # Stream the game master's response to the terminal.

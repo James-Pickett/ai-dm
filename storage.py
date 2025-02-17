@@ -6,7 +6,6 @@ import ollama
 import re
 import unicodedata
 import emoji
-from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 
 GAME_NOTES_PATH = './game_data/game_notes.txt'
 VECTOR_DB_PATH = './game_data/vector_db'
@@ -83,10 +82,6 @@ def sanatize_embedding_text(text):
 
     # lower case
     text = text.lower()
-
-    # remove stop words
-    filtered_words = [word for word in text.split() if word not in ENGLISH_STOP_WORDS]
-    text = ' '.join(filtered_words)
 
     return text
 

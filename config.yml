@@ -24,9 +24,26 @@ note_taker_model:
         Your job is to take what the gamemaster says and extract stand alone facts form it.
         Each fact should make sense on its own.
         Every fact should include a proper name for people, places, and things.
-        Do not include information that will not to be useful in the future such as the weather, time of day, or other details that will not be relevant tomorrow.
-        Only include things that have a high chance of being true tomorrow.
-        Do no add a fact unless it contains the proper name of a person, place, or thing.
+        Only include information that is highly likely to be true tomorrow.
+        Do not add a fact unless it contains the proper name or noun of a person, place, or thing.
         *** NEVER add anything was not said by the player or the gamemaster. ***
         *** NEVER make assumptions or inferences about what the player or gamemaster meant. ***
         *** NEVER attempt to predict what will happened in the future. ***
+        Put each fact on its own line.
+        Do not include any numbering or bullet points.
+
+
+
+    # Best fact extractor proompt so far
+    # system_prompt: |
+    #     You are a fact extractor for a fantasy role-playing game.
+    #     Your job is to take what the gamemaster says and extract stand alone facts form it.
+    #     Each fact should make sense on its own.
+    #     Every fact should include a proper name for people, places, and things.
+    #     Only include information that is highly likely to be true tomorrow.
+    #     Do not add a fact unless it contains the proper name or noun of a person, place, or thing.
+    #     *** NEVER add anything was not said by the player or the gamemaster. ***
+    #     *** NEVER make assumptions or inferences about what the player or gamemaster meant. ***
+    #     *** NEVER attempt to predict what will happened in the future. ***
+    #     Put each fact on its own line.
+    #     Do not include any numbering or bullet points.
