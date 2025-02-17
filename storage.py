@@ -77,10 +77,6 @@ def save_to_vector_db(text):
         ids=ids
     )
 
-    # log results
-    result = collection.get(ids=ids, include=["documents", "embeddings"])
-    vector_db_logger.debug(f"saved to vector db: {result}")
-
 def search_vector_db(query):
     client = chromadb.PersistentClient(path=VECTOR_DB_PATH)
     collection = client.get_or_create_collection(name=VECTOR_DB_COLLECTION_NAME, metadata={"hnsw:space": "cosine"})
@@ -92,12 +88,12 @@ def search_vector_db(query):
         include=["documents"]
     )
 
-    vector_db_logger.debug(f"search results from vector db: {results}")
-
     # Join the list of documents into a single string separated by newlines
     if results['documents'] and results['documents'][0]:
         returnString = "\n".join(results['documents'][0])
     else:
         returnString = ""
+
+    vector_db_logger.debug(f"search results from vector db:\n{returnString}")
 
     return returnString

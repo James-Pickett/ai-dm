@@ -36,8 +36,10 @@ if __name__ == '__main__':
     note_taker = init_note_taker(config)
 
     gamemaster_logger = my_logging.MyModelLogger("game_master")
+    note_taker_logger = my_logging.MyModelLogger("note_taker")
 
     current_notes = storage.load_game_notes()
+    last_game_master_response = ""
 
     while True:
         user_input = input("You: ").strip()
@@ -47,22 +49,26 @@ if __name__ == '__main__':
 
         print("\n ---------- \n")
 
-        vector_search_results = storage.search_vector_db(user_input + current_notes)
+        vector_search_results = storage.search_vector_db(user_input + current_notes + last_game_master_response)
         gamemaster_input = prompt_builder.gamemaster_prompt(user_input, current_notes, vector_search_results)
 
         # Stream the game master's response to the terminal.
+        last_game_master_response = ""
         print("Game Master: ", end="", flush=True)
-        game_master_response = ""
         for token in game_master.chat_stream(gamemaster_input):
-            game_master_response += token
+            last_game_master_response += token
             print(token, end="", flush=True)
 
         print("\n\n ========== \n")
+        gamemaster_logger.log(gamemaster_input, last_game_master_response)
 
-        gamemaster_logger.log(gamemaster_input, game_master_response)
+        # save player input and game master response to db
+        storage.save_to_vector_db(user_input + " " + last_game_master_response)
 
-        storage.save_to_vector_db(user_input + " " + game_master_response)
+        # get note takers ouput
+        notetaker_input = prompt_builder.notetaker_prompt(user_input, last_game_master_response)
+        new_game_notes = note_taker.chat(notetaker_input)
+        note_taker_logger.log(notetaker_input, new_game_notes)
 
-        new_game_notes = note_taker.chat(current_notes, user_input, game_master_response)
         current_notes = new_game_notes
         storage.save_game_notes(current_notes)

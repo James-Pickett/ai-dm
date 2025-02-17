@@ -12,3 +12,9 @@ def gamemaster_prompt(player_input, game_notes, vector_search_results):
     prompt += "The player is aware of the notes, no need to repeat them or reset the scene unless asked.\n\n"
     prompt += f"Here is the player input:\n---\n{player_input}"
     return prompt
+
+def notetaker_prompt(player_input, game_master_output):
+    prompt = "Please extract search terms from the player's and gamemaster's output.\n"
+    prompt += f"Here is the player input:\n---\n{player_input}\n---\n\n"
+    prompt += f"Here is the game master's output:\n---\n{game_master_output}"
+    return prompt

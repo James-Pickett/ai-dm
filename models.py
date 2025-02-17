@@ -34,28 +34,14 @@ class GameMaster(_Model):
     def __init__(self, model_path, custom_model_name, system_prompt):
         super().__init__(model_path, custom_model_name, system_prompt)
 
-    def chat_stream(self, prompt):
-        messages = [{"role": "user", "content": prompt}]
+    def chat_stream(self, input):
+        messages = [{"role": "user", "content": input}]
         return super().generate_stream(messages)
 
 class NoteTaker(_Model):
     def __init__(self, model_path, custom_model_name, system_prompt):
         super().__init__(model_path, custom_model_name, system_prompt)
 
-    def chat(self, player_input, game_master_response, game_notes):
-        prompt = self.create_prompt(player_input, game_master_response, game_notes)
-        messages = [{"role": "user", "content": prompt}]
+    def chat(self, input):
+        messages = [{"role": "user", "content": input}]
         return super().generate(messages)
-
-    def create_prompt(self, game_notes, player_input, game_master_response):
-        prompt = f"Take notes on the current scene\n---\nHere is the players input\n---\n{player_input}\n---\n"
-        prompt += f"Here is the game master's response\n---\n{game_master_response}\n---\n"
-
-        if game_notes is None or game_notes == "":
-            return prompt
-
-        prompt += f"Here are your last notes on the current scene\n---\n{game_notes}\n---\n"
-        return prompt
-
-
-
