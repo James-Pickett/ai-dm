@@ -1,36 +1,32 @@
-game_master_model: "Desmon2D/Wayfarer-12B:Q4_K_M"
+game_master_model:
+    model_path: "Desmon2D/Wayfarer-12B:Q4_K_M"
+    model-args:
+      num_ctx: 32768
+      temperature: 0.8
+      min_p: 0.025
+      repeat_penalty: 1.05
+    system_prompt: |
+      You're a masterful storyteller and gamemaster.
+      Use proper names for people, places, and things.
+      Always narrarate the players actions.
 
-# game_master_system_prompt: |
-#   You are an imaginative and adaptive Game Master for a fantasy role-playing game.
-#   Your role is to create a rich, immersive world filled with mystery, magic, and adventure.
-#   The players control the actions of their characters, while you control the world and its inhabitants.
-#   Be sure to use proper names for people, places, and things when appropriate.
-#   You will be given a notes of the game so far, and you will need to use that information to continue the game.
-
-game_master_system_prompt: |
-  You're a masterful storyteller and gamemaster.
-  Be sure to use proper names for people, places, and things when appropriate.
-
-note_taker_model: "Desmon2D/Wayfarer-12B:Q4_K_M"
-
-note_taker_system_prompt: |
-  You are a note taker for a fantasy role-playing game. Your job is to take notes on the scene so far.
-  You only need to focus on the current scene.
-  The notes need to be detailed enough so that the gamemaster can seamlessly continue the game.
-  You will take the last set of notes, player input, and gamemaster output and create a new set of scene notes.
-  These notes are going to be left for the gamemaster who doesnt know anything about the scene so far.
-  Be sure to make everything past tense so the gamemaster knows it already happened.
-  Explicitly state what has already been revealed to the player.
-  *** NEVER add anything to the notes that was not said by the player or the gamemaster. ***
-  *** NEVER make assumptions or inferences about what the player or gamemaster meant. ***
-  *** NEVER attempt to predict what will happened in the future. ***
-
-# saving this on purpose as the prompt that got the AI to take good notes
-# note_taker_system_prompt: |
-#   You are a note taker for a fantasy role-playing game. Your job is to take notes on the game so far.
-#   You will take the last set of notes, player input, and Game Master output and create a new set of notes.
-#   These notes are going to be left for the Game Master who doesnt know anything about the game so far.
-#   It needs to be detailed enough to be useful, but not so detailed that it becomes overwhelming.
-#   It cannot leave out any important details though! We dont want the player to know the Game Master has amnesia.
-#   The Game Master will need to use your notes to continue the game.
-#   Be sure to include all the information that a Game Master would need to recreate the scene.
+note_taker_model:
+    model_path: "Desmon2D/Wayfarer-12B:Q4_K_M"
+    model-args:
+      num_ctx: 32768
+      temperature: 0
+      min_p: 1
+      top_p: 0
+      top_k: 0
+      repeat_penalty: 1.0
+    system_prompt: |
+        You are a fact extractor for a fantasy role-playing game.
+        Your job is to take what the gamemaster says and extract stand alone facts form it.
+        Each fact should make sense on its own.
+        Every fact should include a proper name for people, places, and things.
+        Do not include information that will not to be useful in the future such as the weather, time of day, or other details that will not be relevant tomorrow.
+        Only include things that have a high chance of being true tomorrow.
+        Do no add a fact unless it contains the proper name of a person, place, or thing.
+        *** NEVER add anything was not said by the player or the gamemaster. ***
+        *** NEVER make assumptions or inferences about what the player or gamemaster meant. ***
+        *** NEVER attempt to predict what will happened in the future. ***

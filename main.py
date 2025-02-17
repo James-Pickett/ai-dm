@@ -5,20 +5,24 @@ import storage
 import prompt_builder
 
 def init_game_master(config):
-    model_name = config.get("game_master_model")
-    system_prompt = config.get("game_master_system_prompt")
+    game_master_model = config.get("game_master_model")
+    model_path = game_master_model["model_path"]
+    system_prompt = game_master_model["system_prompt"]
+    options = game_master_model.get("model-args", {})
 
-    if not model_name:
+    if not model_path:
         raise ValueError("model name cannot be empty")
 
     if not system_prompt:
         raise ValueError("system prompt cannot be empty")
 
-    return models.GameMaster(model_name, "Game Master", system_prompt)
+    return models.GameMaster(model_path, "Game Master", system_prompt, options)
 
 def init_note_taker(config):
-    model_name = config.get("note_taker_model")
-    system_prompt = config.get("note_taker_system_prompt")
+    note_taker_model = config.get("note_taker_model")
+    model_name = note_taker_model["model_path"]
+    system_prompt = note_taker_model["system_prompt"]
+    options = note_taker_model.get("model-args", {})
 
     if not model_name:
         raise ValueError("model name cannot be empty")
@@ -26,7 +30,7 @@ def init_note_taker(config):
     if not system_prompt:
         raise ValueError("system prompt cannot be empty")
 
-    return models.NoteTaker(model_name, "Note Taker", system_prompt)
+    return models.NoteTaker(model_name, "Note Taker", system_prompt, options)
 
 if __name__ == '__main__':
     my_logging.setup()
@@ -62,9 +66,6 @@ if __name__ == '__main__':
         print("\n\n ========== \n")
         gamemaster_logger.log(gamemaster_input, last_game_master_response)
 
-        # save player input and game master response to db
-        storage.save_to_vector_db(user_input + " " + last_game_master_response)
-
         # get note takers ouput
         notetaker_input = prompt_builder.notetaker_prompt(user_input, last_game_master_response)
         new_game_notes = note_taker.chat(notetaker_input)
@@ -72,3 +73,4 @@ if __name__ == '__main__':
 
         current_notes = new_game_notes
         storage.save_game_notes(current_notes)
+        storage.save_to_vector_db(current_notes)
