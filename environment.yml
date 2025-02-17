@@ -5,6 +5,8 @@ channels:
 dependencies:
   - python=3.10
   - pip
-  - pip:
-    - ollama
-    - chromadb
+  - scikit-learn
+  - emoji
+  - ollama
+  - chromadb
+

@@ -1,5 +1,3 @@
-
-
 def gamemaster_prompt(player_input, game_notes, vector_search_results):
     if game_notes is None or game_notes == "":
         return f"Lets start the scene, here is the player input:\n---\n{player_input}"

@@ -4,6 +4,9 @@ import uuid
 import logging
 import ollama
 import re
+import unicodedata
+import emoji
+from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 
 GAME_NOTES_PATH = './game_data/game_notes.txt'
 VECTOR_DB_PATH = './game_data/vector_db'
@@ -53,13 +56,48 @@ def chunksplitter(text, chunk_size=1000):
 
     return chunks
 
+def sanatize_embedding_text(text):
+    # Remove any non-ASCII characters
+    text = re.sub(r'[^\x00-\x7F]+', '', text)
+
+    # Remove any extra whitespace
+    text = re.sub(r'\s+', ' ', text)
+
+    # Remove any punctuation
+    text = re.sub(r'[^\w\s]', '', text)
+
+    # Remove any leading or trailing whitespace
+    text = text.strip()
+
+    # Remove any newlines
+    text = text.replace('\n', ' ')
+
+    # Remove any tabs
+    text = text.replace('\t', ' ')
+
+    # change any emojis to text
+    text = emoji.demojize(text)
+
+    # normalize unicode characters
+    text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('utf-8')
+
+    # lower case
+    text = text.lower()
+
+    # remove stop words
+    filtered_words = [word for word in text.split() if word not in ENGLISH_STOP_WORDS]
+    text = ' '.join(filtered_words)
+
+    return text
+
 def getembedding(chunks, prefix):
     # copy array to avoid modifying the original
     chunks = chunks.copy()
 
-    # iterate over chunks and add prefix to each chunk
+    # iterate over chunks, sanatize them and add prefix
     for i in range(len(chunks)):
-        chunks[i] = prefix + chunks[i]
+        sanatized_chuck = sanatize_embedding_text(chunks[i])
+        chunks[i] = prefix + sanatized_chuck
 
     embeds = ollama.embed(model="nomic-embed-text", input=chunks)
     return embeds.get('embeddings', [])
