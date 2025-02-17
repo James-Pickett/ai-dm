@@ -32,7 +32,7 @@ def load_game_notes():
     with open(GAME_NOTES_PATH, 'r') as file:
         return file.read()
 
-def chunksplitter(text, chunk_size=100):
+def chunksplitter(text, chunk_size=1000):
     words = re.findall(r'\S+', text)
 
     chunks = []
@@ -89,13 +89,15 @@ def search_vector_db(query):
     results = collection.query(
         query_embeddings=query_embedding,
         n_results=10,
-        include=["documents", "embeddings"]
+        include=["documents"]
     )
 
     vector_db_logger.debug(f"search results from vector db: {results}")
 
-    returnString = ""
-    for i in range(len(results['documents'])):
-        returnString += f"{results['documents'][i]}\n"
+    # Join the list of documents into a single string separated by newlines
+    if results['documents'] and results['documents'][0]:
+        returnString = "\n".join(results['documents'][0])
+    else:
+        returnString = ""
 
     return returnString

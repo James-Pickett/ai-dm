@@ -2,6 +2,7 @@ import config
 import models
 import my_logging
 import storage
+import prompt_builder
 
 def init_game_master(config):
     model_name = config.get("game_master_model")
@@ -34,6 +35,8 @@ if __name__ == '__main__':
     game_master = init_game_master(config)
     note_taker = init_note_taker(config)
 
+    gamemaster_logger = my_logging.MyModelLogger("game_master")
+
     current_notes = storage.load_game_notes()
 
     while True:
@@ -45,15 +48,18 @@ if __name__ == '__main__':
         print("\n ---------- \n")
 
         vector_search_results = storage.search_vector_db(user_input + current_notes)
+        gamemaster_input = prompt_builder.gamemaster_prompt(user_input, current_notes, vector_search_results)
 
         # Stream the game master's response to the terminal.
         print("Game Master: ", end="", flush=True)
         game_master_response = ""
-        for token in game_master.chat_stream(user_input, current_notes, vector_search_results):
+        for token in game_master.chat_stream(gamemaster_input):
             game_master_response += token
             print(token, end="", flush=True)
 
         print("\n\n ========== \n")
+
+        gamemaster_logger.log(gamemaster_input, game_master_response)
 
         storage.save_to_vector_db(user_input + " " + game_master_response)
 

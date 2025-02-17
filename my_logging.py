@@ -2,6 +2,24 @@
 import os
 import logging
 
+class MyModelLogger:
+    def __init__(self, name):
+        self.logger = logging.getLogger(name)
+        self.logger.setLevel(logging.DEBUG)
+        self.logger.propagate = False
+
+        # Create a file handler
+        handler = logging.FileHandler(f"./debug/{name}.log")
+        formatter = logging.Formatter("")
+        handler.setFormatter(formatter)
+
+        # Add the handler to the logger
+        self.logger.addHandler(handler)
+
+    def log(self, model_input, model_output):
+        self.logger.debug(f"{model_input}\n\n++++++++++\n")
+        self.logger.debug(f"{model_output}\n\n@@@@@@@@@@\n")
+
 def setup():
     os.makedirs("./debug", exist_ok=True)
     logging.basicConfig(
