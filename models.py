@@ -1,7 +1,7 @@
 import ollama
 import logging
 
-class _Model:
+class Model:
     def __init__(self, model_path, custom_model_name, system_prompt, options):
         if not model_path:
             raise ValueError("model name cannot be empty")
@@ -24,18 +24,9 @@ class _Model:
     def generate(self, messages):
         return "".join(self.generate_stream(messages))
 
-class GameMaster(_Model):
-    def __init__(self, model_path, custom_model_name, system_prompt, options):
-        super().__init__(model_path, custom_model_name, system_prompt, options)
-
     def chat_stream(self, input):
         messages = [{"role": "user", "content": input}]
-        return super().generate_stream(messages)
-
-class NoteTaker(_Model):
-    def __init__(self, model_path, custom_model_name, system_prompt, options):
-        super().__init__(model_path, custom_model_name, system_prompt, options)
+        return self.generate_stream(messages)
 
     def chat(self, input):
-        messages = [{"role": "user", "content": input}]
-        return super().generate(messages)
+        return "".join(self.chat_stream(input))

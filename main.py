@@ -4,8 +4,8 @@ import my_logging
 import storage
 import prompt_builder
 
-def init_game_master(config):
-    game_master_model = config.get("game_master_model")
+def init_model(config, model_obj_name, model_name):
+    game_master_model = config.get(model_obj_name)
     model_path = game_master_model["model_path"]
     system_prompt = game_master_model["system_prompt"]
     options = game_master_model.get("model-args", {})
@@ -16,28 +16,14 @@ def init_game_master(config):
     if not system_prompt:
         raise ValueError("system prompt cannot be empty")
 
-    return models.GameMaster(model_path, "Game Master", system_prompt, options)
-
-def init_note_taker(config):
-    note_taker_model = config.get("note_taker_model")
-    model_name = note_taker_model["model_path"]
-    system_prompt = note_taker_model["system_prompt"]
-    options = note_taker_model.get("model-args", {})
-
-    if not model_name:
-        raise ValueError("model name cannot be empty")
-
-    if not system_prompt:
-        raise ValueError("system prompt cannot be empty")
-
-    return models.NoteTaker(model_name, "Note Taker", system_prompt, options)
+    return models.Model(model_path, model_name, system_prompt, options)
 
 if __name__ == '__main__':
     my_logging.setup()
 
     config = config.load('./config.yml')
-    game_master = init_game_master(config)
-    note_taker = init_note_taker(config)
+    game_master = init_model(config, "game_master_model", "Game Master")
+    note_taker = init_model(config, "note_taker_model", "Note Taker")
 
     gamemaster_logger = my_logging.MyModelLogger("game_master")
     note_taker_logger = my_logging.MyModelLogger("note_taker")
