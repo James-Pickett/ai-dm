@@ -35,10 +35,10 @@ if __name__ == '__main__':
 
         print("\n ---------- \n")
 
-        vector_search_results = storage.search_vector_db(f"{user_input} {current_notes} {last_game_master_response}")
+        vector_search_results = storage.search_vector_db(f"{user_input} {current_notes} {last_game_master_response}", 20)
 
         gamemaster_system_prompt = prompt_builder.gamemaster_system_prompt(current_notes, vector_search_results)
-        gamemaster_chat_history = gamemaster_logger.get_last_n_pairs(8)
+        gamemaster_chat_history = gamemaster_logger.get_last_n_pairs(10)
 
         # Stream the game master's response to the terminal.
         last_game_master_response = ""

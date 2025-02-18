@@ -34,26 +34,9 @@ def load_game_notes():
     with open(GAME_NOTES_PATH, 'r') as file:
         return file.read()
 
-def chunksplitter(text, chunk_size=1000):
-    words = re.findall(r'\S+', text)
-
-    chunks = []
-    current_chunk = []
-    word_count = 0
-
-    for word in words:
-        current_chunk.append(word)
-        word_count += 1
-
-        if word_count >= chunk_size:
-            chunks.append(' '.join(current_chunk))
-            current_chunk = []
-            word_count = 0
-
-    if current_chunk:
-        chunks.append(' '.join(current_chunk))
-
-    return chunks
+def chunksplitter(text):
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    return lines
 
 def sanatize_embedding_text(text):
     # Remove any non-ASCII characters
@@ -110,14 +93,14 @@ def save_to_vector_db(text):
         ids=ids
     )
 
-def search_vector_db(query):
+def search_vector_db(query, max_results=10):
     client = chromadb.PersistentClient(path=VECTOR_DB_PATH)
     collection = client.get_or_create_collection(name=VECTOR_DB_COLLECTION_NAME, metadata={"hnsw:space": "cosine"})
 
     query_embedding = getembedding([query], "search_query:")
     results = collection.query(
         query_embeddings=query_embedding,
-        n_results=10,
+        n_results=max_results,
         include=["documents"]
     )
 
