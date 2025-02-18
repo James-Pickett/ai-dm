@@ -1,13 +1,14 @@
 import ollama
-import logging
+import my_logging
 
 class Model:
-    def __init__(self, model_path, custom_model_name, options):
+    def __init__(self, log_component: my_logging.Component, model_path, options):
         if not model_path:
             raise ValueError("model name cannot be empty")
+
         self.model_path = model_path
-        self.custom_model_name = custom_model_name
         self.options = options
+        self.logger = my_logging.get_logger(log_component)
 
     def chat_stream(self, system_prompt, chat_history_pairs, chat_input):
         messages = []
@@ -21,10 +22,21 @@ class Model:
 
         messages.append({"role": "user", "content": chat_input})
 
-        logging.debug(f"sending to {self.custom_model_name} {self.model_path} {messages}")
         response = ollama.chat(model=self.model_path, messages=messages, options=self.options, stream=True)
+        responseStr = ""
         for chunk in response:
+            responseStr += chunk['message']['content']
             yield chunk['message']['content']
+
+        messages.append({"role": "assistant", "content": responseStr})
+        self.logger.debug(
+            "interaction with model",
+            extra=
+            {
+                "model_path": self.model_path,
+                "messages": messages,
+            }
+        )
 
     def chat(self, system_prompt, chat_history_pairs, chat_input):
         return "".join(self.chat_stream(system_prompt, chat_history_pairs, chat_input))

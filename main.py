@@ -4,25 +4,22 @@ import my_logging
 import storage
 import prompt_builder
 
-def init_model(config, model_obj_name, model_name):
-    game_master_model = config.get(model_obj_name)
+def init_model(config, log_component: my_logging.Component, model_config_name):
+    game_master_model = config.get(model_config_name)
     model_path = game_master_model["model_path"]
     options = game_master_model.get("model-args", {})
 
     if not model_path:
-        raise ValueError("model name cannot be empty")
+        raise ValueError("model path cannot be empty")
 
-    return models.Model(model_path, model_name, options)
+    return models.Model(log_component, model_path, options)
 
 if __name__ == '__main__':
-    my_logging.setup()
-
     config = config.load('./config.yml')
-    game_master = init_model(config, "game_master_model", "Game Master")
-    note_taker = init_model(config, "note_taker_model", "Note Taker")
+    game_master = init_model(config, my_logging.Component.GAME_MASTER_RAW, "game_master_model")
+    note_taker = init_model(config, my_logging.Component.NOTE_TAKER_RAW, "note_taker_model")
 
-    gamemaster_logger = my_logging.ModelLogger("game_master", data_dir="./game_data")
-    note_taker_logger = my_logging.ModelLogger("note_taker", data_dir="./game_data")
+    gamemaster_transcript_saver = storage.TranscriptSaver(my_logging.Component.GAME_MASTER, data_dir="./game_data")
 
     current_notes = storage.load_game_notes()
     last_game_master_response = ""
@@ -38,7 +35,7 @@ if __name__ == '__main__':
         vector_search_results = storage.search_vector_db(f"{user_input} {current_notes} {last_game_master_response}", 20)
 
         gamemaster_system_prompt = prompt_builder.gamemaster_system_prompt(current_notes, vector_search_results)
-        gamemaster_chat_history = gamemaster_logger.get_last_n_pairs(10)
+        gamemaster_chat_history = gamemaster_transcript_saver.get_last_n_pairs(5)
 
         # Stream the game master's response to the terminal.
         last_game_master_response = ""
@@ -48,12 +45,11 @@ if __name__ == '__main__':
             print(token, end="", flush=True)
 
         print("\n\n ========== \n")
-        gamemaster_logger.log(user_input, last_game_master_response)
+        gamemaster_transcript_saver.save_to_transcript(user_input, last_game_master_response)
 
         # get note takers ouput
         notetaker_input = prompt_builder.notetaker_prompt(user_input, last_game_master_response)
         new_game_notes = note_taker.chat(prompt_builder.notetaker_system_prompt(), [], notetaker_input)
-        note_taker_logger.log(notetaker_input, new_game_notes)
 
         current_notes = new_game_notes
         storage.save_game_notes(current_notes)

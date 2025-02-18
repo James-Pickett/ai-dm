@@ -1,70 +1,51 @@
-# Setup logging
 import os
 import logging
 import json
-from collections import deque
+from enum import Enum
 
+class Component(Enum):
+    VECTOR_DB = "vector_db"
+    GAME_MASTER_RAW = "game_master_raw"
+    GAME_MASTER = "game_master"
+    NOTE_TAKER_RAW = "note_taker_raw"
 
-class ModelLogger:
-    def __init__(self, name, data_dir):
-        self.logger = logging.getLogger(name)
-        self.logger.setLevel(logging.DEBUG)
-        self.logger.propagate = False
+class JSONFormatter(logging.Formatter):
+    """Custom JSON log formatter that dynamically includes all extra key-value pairs."""
 
-        # Create a file handler for log output
-        handler = logging.FileHandler(f"./debug/{name}.log")
-        formatter = logging.Formatter("")
-        handler.setFormatter(formatter)
-        self.logger.addHandler(handler)
+    def format(self, record):
+        log_record = {
+            "timestamp": self.formatTime(record),
+            "level": record.levelname,
+            "message": record.getMessage(),
+            "filename": record.filename,
+            "lineno": record.lineno
+        }
 
-        # Ensure directory exists
-        os.makedirs(data_dir, exist_ok=True)
-        self.file_path = os.path.join(data_dir, f"{name}_pairs.json")
+        for key in record.__dict__.keys():
+            if key not in log_record and not key.startswith('_'):
+                log_record[key] = getattr(record, key, None)
 
-        # Initialize in-memory pairs with previously saved pairs
-        self.in_memory_pairs = deque(self.load_pairs(), maxlen=10)
+        return json.dumps(log_record, ensure_ascii=False)
 
-    def save_pairs(self):
-        with open(self.file_path, "w", encoding="utf-8") as f:
-            json.dump(list(self.in_memory_pairs), f, ensure_ascii=False, indent=2)
+os.makedirs("./debug", exist_ok=True)
+LOG_FILE_PATH = "./debug/log.json"
+file_handler = logging.FileHandler(LOG_FILE_PATH, mode="a", encoding="utf-8")
+file_handler.setFormatter(JSONFormatter())
 
-    def load_pairs(self):
-        if os.path.exists(self.file_path):
-            try:
-                with open(self.file_path, "r", encoding="utf-8") as f:
-                    return json.load(f)
-            except json.JSONDecodeError:
-                return []
-        return []
+class ContextAdapter(logging.LoggerAdapter):
+    def process(self, msg, kwargs):
+        extra = {**self.extra, **kwargs.pop("extra", {})}
+        return msg, {"extra": extra}
 
-    def log(self, model_input, model_output):
-        self.in_memory_pairs.append((model_input, model_output))
-        self.logger.debug(f"{model_input}\n\n++++++++++\n")
-        self.logger.debug(f"{model_output}\n\n@@@@@@@@@@\n")
+def get_logger(component: Component, level=logging.DEBUG):
+    if not isinstance(component, Component):
+        raise ValueError(f"invalid component, must be one of: {[c.value for c in Component]}")
 
-        with open(self.file_path, "w", encoding="utf-8") as f:
-            json.dump(list(self.in_memory_pairs), f, ensure_ascii=False, indent=2)
+    logger_name = component.value
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(level)
 
-    def get_last_n_pairs(self, n=10):
-        if n > len(self.in_memory_pairs):
-            n = len(self.in_memory_pairs)
-        return list(self.in_memory_pairs)[:n]
+    if not logger.handlers:
+        logger.addHandler(file_handler)
 
-def setup():
-    os.makedirs("./debug", exist_ok=True)
-    logging.basicConfig(
-        filename="./debug/debug.log",
-        level=logging.DEBUG,
-        format="%(asctime)s - %(levelname)s - %(message)s"
-    )
-
-    # Suppress noisy logs from third-party libraries
-    for logger_name in [
-        "httpx", "requests", "urllib3", "chromadb",
-        "asyncio", "openai", "ollama"
-        ]:logging.getLogger(logger_name).setLevel(logging.WARNING)
-
-    logging.getLogger("httpcore").setLevel(logging.WARNING)
-    logging.getLogger("httpx._client").setLevel(logging.WARNING)
-    logging.getLogger("httpx._transports").setLevel(logging.WARNING)
-    logging.getLogger("httpx.transport").setLevel(logging.WARNING)
+    return ContextAdapter(logger, {"component": component.value})
