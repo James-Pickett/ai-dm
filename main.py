@@ -21,8 +21,8 @@ if __name__ == '__main__':
     game_master = init_model(config, "game_master_model", "Game Master")
     note_taker = init_model(config, "note_taker_model", "Note Taker")
 
-    gamemaster_logger = my_logging.MyModelLogger("game_master")
-    note_taker_logger = my_logging.MyModelLogger("note_taker")
+    gamemaster_logger = my_logging.ModelLogger("game_master", data_dir="./game_data")
+    note_taker_logger = my_logging.ModelLogger("note_taker", data_dir="./game_data")
 
     current_notes = storage.load_game_notes()
     last_game_master_response = ""

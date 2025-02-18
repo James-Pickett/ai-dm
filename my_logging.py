@@ -1,28 +1,49 @@
 # Setup logging
 import os
 import logging
+import json
 from collections import deque
 
 
-class MyModelLogger:
-    def __init__(self, name):
+class ModelLogger:
+    def __init__(self, name, data_dir):
         self.logger = logging.getLogger(name)
         self.logger.setLevel(logging.DEBUG)
         self.logger.propagate = False
-        self.in_memory_pairs = deque([], maxlen=10)
 
-        # Create a file handler
+        # Create a file handler for log output
         handler = logging.FileHandler(f"./debug/{name}.log")
         formatter = logging.Formatter("")
         handler.setFormatter(formatter)
-
-        # Add the handler to the logger
         self.logger.addHandler(handler)
 
+        # Ensure directory exists
+        os.makedirs(data_dir, exist_ok=True)
+        self.file_path = os.path.join(data_dir, f"{name}_pairs.json")
+
+        # Initialize in-memory pairs with previously saved pairs
+        self.in_memory_pairs = deque(self.load_pairs(), maxlen=10)
+
+    def save_pairs(self):
+        with open(self.file_path, "w", encoding="utf-8") as f:
+            json.dump(list(self.in_memory_pairs), f, ensure_ascii=False, indent=2)
+
+    def load_pairs(self):
+        if os.path.exists(self.file_path):
+            try:
+                with open(self.file_path, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except json.JSONDecodeError:
+                return []
+        return []
+
     def log(self, model_input, model_output):
-        self.in_memory_pairs.insert(0, (model_input, model_output))
+        self.in_memory_pairs.append((model_input, model_output))
         self.logger.debug(f"{model_input}\n\n++++++++++\n")
         self.logger.debug(f"{model_output}\n\n@@@@@@@@@@\n")
+
+        with open(self.file_path, "w", encoding="utf-8") as f:
+            json.dump(list(self.in_memory_pairs), f, ensure_ascii=False, indent=2)
 
     def get_last_n_pairs(self, n=10):
         if n > len(self.in_memory_pairs):
