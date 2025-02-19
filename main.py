@@ -57,7 +57,7 @@ if __name__ == '__main__':
             print(token, end="", flush=True)
 
         print("\n\n ========== \n")
-        gamemaster_transcript_saver.save_to_transcript(game_master_prompt, last_game_master_response)
+        gamemaster_transcript_saver.save_to_transcript(player_input, last_game_master_response)
 
         # get note takers ouput
         fact_extractor_prompt = prompt_builder.fact_extractor_prompt(player_input, last_game_master_response)

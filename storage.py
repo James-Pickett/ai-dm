@@ -171,4 +171,6 @@ class TranscriptSaver:
     def get_last_n_pairs(self, n=10):
         if n > len(self.in_memory_pairs):
             n = len(self.in_memory_pairs)
-        return list(self.in_memory_pairs)[:n]
+
+        n = len(self.in_memory_pairs) - n
+        return list(self.in_memory_pairs)[n:]
