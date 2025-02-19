@@ -2,11 +2,21 @@ game_master_model:
     model_path: "Desmon2D/Wayfarer-12B:Q4_K_M"
     model-args:
       num_ctx: 32768
-      temperature: 0.8
+      temperature: 1
       min_p: 0.025
       repeat_penalty: 1.05
 
-note_taker_model:
+fact_extractor_model:
+    model_path: "Desmon2D/Wayfarer-12B:Q4_K_M"
+    model-args:
+      num_ctx: 32768
+      temperature: 0
+      min_p: 1
+      top_p: 0
+      top_k: 0
+      repeat_penalty: 1.0
+
+scene_note_taker_model:
     model_path: "Desmon2D/Wayfarer-12B:Q4_K_M"
     model-args:
       num_ctx: 32768

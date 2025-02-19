@@ -19,7 +19,7 @@ def save_game_notes(notes):
     with open(GAME_NOTES_PATH, 'w') as file:
         file.write(notes)
 
-def load_game_notes():
+def load_scene_notes():
     if not os.path.exists(GAME_NOTES_PATH):
         return ""
 
@@ -90,7 +90,7 @@ def save_to_vector_db(text):
     )
 
     VECTOR_DB_LOGGER.debug(
-        "adding to vector db",
+        "saving to vector db",
         extra={
             "chunks": chunks,
             "chunk_count": len(chunks),

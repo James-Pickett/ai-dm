@@ -7,7 +7,9 @@ class Component(Enum):
     VECTOR_DB = "vector_db"
     GAME_MASTER_RAW = "game_master_raw"
     GAME_MASTER = "game_master"
-    NOTE_TAKER_RAW = "note_taker_raw"
+    FACT_EXTRACTOR_RAW = "fact_extractor_raw"
+    SCENE_NOTE_TAKER = "scene_note_taker"
+    SCENE_NOTE_TAKER_RAW = "scene_note_taker_raw"
 
 class JSONFormatter(logging.Formatter):
     """Custom JSON log formatter that dynamically includes all extra key-value pairs."""
@@ -25,7 +27,7 @@ class JSONFormatter(logging.Formatter):
             if key not in log_record and not key.startswith('_'):
                 log_record[key] = getattr(record, key, None)
 
-        return json.dumps(log_record, ensure_ascii=False)
+        return json.dumps(log_record, ensure_ascii=False, indent=4)
 
 os.makedirs("./debug", exist_ok=True)
 LOG_FILE_PATH = "./debug/log.json"
