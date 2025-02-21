@@ -30,6 +30,7 @@ def fact_extractor_prompt(player_input, game_master_output):
     return f"""Extract the facts from the following text information player and gamemaster interation.
 
 Here are some rules to guide you:
+    - Each fact should be a full sentence.
     - Each fact should make sense on its own.
     - Every fact should include a proper name for people, places, and things.
     - Only include information that is highly likely to be true tomorrow.
