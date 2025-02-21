@@ -8,7 +8,11 @@ game_master_model:
 
 fact_extractor_model:
     model_path: "llama3.2:3b-instruct-q4_K_M"
+    model-args:
+      num_ctx: 32768
 
 scene_note_taker_model:
     model_path: "llama3.2:3b-instruct-q4_K_M"
+    model-args:
+      num_ctx: 32768
 
