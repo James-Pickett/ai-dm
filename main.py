@@ -45,9 +45,9 @@ if __name__ == '__main__':
 
         vector_search_results = storage.search_vector_db(f"{player_input} {current_scene_notes}", 20)
 
-        gamemaster_system_prompt = prompt_builder.gamemaster_system_prompt()
+        gamemaster_system_prompt = prompt_builder.gamemaster_system_prompt(current_scene_notes, vector_search_results)
         gamemaster_chat_history = gamemaster_transcript_saver.get_last_n_pairs(5)
-        game_master_prompt = prompt_builder.gamemaster_prompt(scene_notes=current_scene_notes, campaign_facts=vector_search_results, player_input=player_input)
+        game_master_prompt = prompt_builder.gamemaster_prompt(player_input)
 
         # Stream the game master's response to the terminal.
         last_game_master_response = ""
@@ -59,16 +59,6 @@ if __name__ == '__main__':
         print("\n\n ========== \n")
         gamemaster_transcript_saver.save_to_transcript(player_input, last_game_master_response)
 
-        # get note takers ouput
-        fact_extractor_prompt = prompt_builder.fact_extractor_prompt(player_input, last_game_master_response)
-        new_facts = fact_extractor.chat(prompt_builder.fact_extractor_system_prompt(), [], fact_extractor_prompt)
-
-        new_facts = extract_between_tags(new_facts, "<facts>", "</facts>")
-        if not new_facts or new_facts == "":
-            print("ERROR: No new facts found.")
-        else:
-            storage.save_to_vector_db(new_facts)
-
         scene_note_taker_system_prompt = prompt_builder.scene_note_taker_system_prompt()
         scene_note_taker_prompt = prompt_builder.scene_note_taker_prompt(current_scene_notes, player_input, last_game_master_response)
         scene_note_taker_response = scene_note_taker.chat(scene_note_taker_system_prompt, [], scene_note_taker_prompt)
@@ -79,6 +69,17 @@ if __name__ == '__main__':
         else:
             current_scene_notes = scene_note_taker_response
             storage.save_game_notes(current_scene_notes)
+
+        fact_extractor_prompt = prompt_builder.fact_extractor_prompt(current_scene_notes, player_input, last_game_master_response)
+        new_facts = fact_extractor.chat(prompt_builder.fact_extractor_system_prompt(), [], fact_extractor_prompt)
+
+        new_facts = extract_between_tags(new_facts, "<facts>", "</facts>")
+        if not new_facts or new_facts == "":
+            print("ERROR: No new facts found.")
+        else:
+            storage.save_to_vector_db(new_facts)
+
+
 
 
 

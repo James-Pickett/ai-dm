@@ -1,20 +1,17 @@
-def gamemaster_system_prompt():
-    return "You are a strict, but fair storyteller and gamemaster."
+def gamemaster_system_prompt(scene_notes, campaign_facts):
+    return f"""You are a strict, but fair storyteller and gamemaster.
 
-def gamemaster_prompt(scene_notes, campaign_facts, player_input):
-    return f"""Continue the story with the information provided.
-
-Use proper nouns to name people, places, and things.
-
-Use only the player input to narrate the players actions in the third person.
-
-<scene_notes>
-{scene_notes}
-</scene_notes>
-
-<campaign_facts>
+World lore: Historical Facts
 {campaign_facts}
-</campaign_facts>
+
+World lore: Current Scene Notes
+{scene_notes}
+"""
+
+def gamemaster_prompt(player_input):
+    return f"""Continue the story.
+Use proper nouns to name people, places, and things.
+Use only the player input to narrate the players actions in the third person.
 
 <player_input>
 {player_input}
@@ -26,7 +23,7 @@ def fact_extractor_system_prompt():
 Your job is to take what the gamemaster and player say and extract stand alone facts form them.
 """
 
-def fact_extractor_prompt(player_input, game_master_output):
+def fact_extractor_prompt(scene_notes, player_input, game_master_output):
     return f"""Extract the facts from the following text information player and gamemaster interation.
 
 Here are some rules to guide you:
@@ -40,6 +37,10 @@ Here are some rules to guide you:
     - *** NEVER attempt to predict what will happened in the future. ***
     - Put each fact on its own line.
     - Do not include any numbering or bullet points
+
+<context>
+{scene_notes}
+</context>
 
 <player>
 {player_input}

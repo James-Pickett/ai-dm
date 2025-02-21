@@ -6,6 +6,11 @@ import yaml
 MODEL_TRANSCRIPT_DEBUG_PATH = "./debug/model_transcrpt.yml"
 os.makedirs("./debug", exist_ok=True)
 
+def literal_str_representer(dumper, data):
+    return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="|")
+
+yaml.add_representer(str, literal_str_representer)
+
 class Model:
     def __init__(self, log_component: my_logging.Component, model_path, options):
         if not model_path:
@@ -53,7 +58,7 @@ class Model:
 
         with open(MODEL_TRANSCRIPT_DEBUG_PATH, "a") as f:
             f.write("\n---\n")
-            yaml.dump(model_transript_obj, f, default_style="|")
+            yaml.dump(model_transript_obj, f, allow_unicode=True)
 
     def chat(self, system_prompt, chat_history_pairs, chat_input):
         return "".join(self.chat_stream(system_prompt, chat_history_pairs, chat_input))
