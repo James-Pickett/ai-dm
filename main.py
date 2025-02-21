@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
         print("\n ---------- \n")
 
-        vector_search_results = storage.search_vector_db(f"{player_input} {current_scene_notes} {last_game_master_response}", 20)
+        vector_search_results = storage.search_vector_db(f"{player_input} {current_scene_notes}", 20)
 
         gamemaster_system_prompt = prompt_builder.gamemaster_system_prompt()
         gamemaster_chat_history = gamemaster_transcript_saver.get_last_n_pairs(5)

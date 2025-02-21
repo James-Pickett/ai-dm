@@ -74,12 +74,41 @@ def getembedding(chunks, prefix):
     embeds = ollama.embed(model="nomic-embed-text", input=chunks)
     return embeds.get('embeddings', [])
 
+def get_most_similar_result(collection, embeddings):
+    results = collection.query(
+        query_embeddings=embeddings,
+        n_results=1,
+        include=["documents", "distances"]
+    )
+
+    return results
+
 def save_to_vector_db(text):
     client = chromadb.PersistentClient(path=VECTOR_DB_PATH)
     collection = client.get_or_create_collection(name=VECTOR_DB_COLLECTION_NAME, metadata={"hnsw:space": "cosine"})
     starting_count = collection.count()
 
     chunks = chunksplitter(text)
+
+    for chunk in chunks:
+        embeddings = getembedding([chunk], "search_query:")
+        most_similar = get_most_similar_result(collection, embeddings)
+        if len(most_similar["documents"][0]) == 0:
+            continue
+
+        similarity = 1 - most_similar['distances'][0][0]
+
+        if similarity > 0.9:
+            id = most_similar['ids'][0][0]
+            collection.delete(ids=[id])
+            VECTOR_DB_LOGGER.debug(
+                "deleting from vector db",
+                extra={
+                    "new_chunk": chunk,
+                    "old_chunk": most_similar['documents'][0][0],
+                    "similarity": similarity,
+                }
+            )
 
     embeddings = getembedding(chunks, "search_document:")
     ids = [str(uuid.uuid4()) for _ in range(len(chunks))]
