@@ -6,7 +6,15 @@
         "type": "debugpy",
         "request": "launch",
         "program": "${workspaceFolder}/main.py",
-        "console": "integratedTerminal"
+        "console": "integratedTerminal",
+      },
+      {
+        "name": "synthetic_gen",
+        "type": "debugpy",
+        "request": "launch",
+        "program": "${workspaceFolder}/training/chronicler_synthetic_data_gen.py",
+        "console": "integratedTerminal",
+        "justMyCode": false,
       }
     ]
   }
