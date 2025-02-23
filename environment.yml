@@ -11,4 +11,3 @@ dependencies:
     - ollama
     - langchain<0.3
     - pydantic
-
