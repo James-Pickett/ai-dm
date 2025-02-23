@@ -1,11 +1,6 @@
-from langchain_core.prompts import PromptTemplate
-from pydantic import BaseModel, Field
-from typing import List
+from synthetic_data_gen import ChroniclerTrainingEntry, ChroniclerInput, ChroniclerOutput, SceneNotes, Generator
 
-from langchain.output_parsers import PydanticOutputParser, RetryOutputParser
-from langchain_ollama.llms import OllamaLLM
-
-PROMPT_TEMPLATE = """
+INITIAL_SCENE_PROMPT_TEMPLATE = """
 You are an AI assistant designed to generate realistic training data for a table top role-playing game (TTRPG) campaign.
 This training data will be used to train an AI assistant known as the Chronicler, which helps the dungeon master keep track of their campaigns.
 Your task is to generate examples for the Chronicler to learn from.
@@ -37,39 +32,7 @@ Return only a JSON object in this format:
 Now, generate an example dungeon master utterance and create new scene notes based on the player and dungeon master utterances.
 """
 
-
-class SceneNotes(BaseModel):
-    player_characters: List[str] = Field(
-        description="List of player characters in the scene",
-    )
-    non_player_characters: List[str] = Field(
-        description="List of non-player characters in the scene",
-    )
-    players_characters_location: List[str] = Field(
-        description="The players location from largest to smallest (e.g. region, city, building, room)",
-    )
-    scene_details: List[str] = Field(
-        description="Minor or transient details of the scene such as weather, mood, smells, sounds, etc.",
-    )
-
-
-class ChroniclerInput(BaseModel):
-    player_utterance: str = Field(
-        description="Something a player might say during a TTRPG campaign",
-    )
-    game_master_utterance: str = Field(
-        description="Something a dungeon master might say during a TTRPG campaign. Proper names and nouns should be used whenever possible",
-    )
-
-class ChroniclerTrainingEntry(BaseModel):
-    chronicler_input: ChroniclerInput = Field(
-        description="The input the chronicler would receive from the player and dungeon master",
-    )
-    scene_notes: SceneNotes = Field(
-        description="Secene notes created or updated based on the player and dungeon master utterances",
-    )
-
-examples = [
+initial_scene_examples = [
     ChroniclerTrainingEntry(
         chronicler_input=ChroniclerInput(
             player_utterance="My player's name is Creb. Lets have a viking themed adventure.",
@@ -77,17 +40,25 @@ examples = [
 
 You find yourself in the taproom of the Silver Chalice, a rough-and-tumble establishment nestled in the heart of Havenbrook. The air is thick with smoke and the smell of spilled ale, while the sounds of raucous laughter and clinking tankards fill the space. A weathered barkeep named Old Tom stands behind the counter, methodically wiping down mugs as he keeps an eye on the rowdy crowd. The room buzzes with gossip about recent raids from the Dreadwood and whispers of a growing cult activity in the outskirts of town.""",
         ),
-        scene_notes=SceneNotes(
-            player_characters=["Creb"],
-            non_player_characters=["Old Tom"],
-            players_characters_location=["Havenbrook", "the Silver Chalice"],
-            scene_details=[
-                "The air is thick with smoke and the smell of spilled ale",
-                "The sounds of raucous laughter and clinking tankards fill the space",
-                "Old Tom stands behind the counter, methodically wiping down mugs as he keeps an eye on the rowdy crowd"
-                "The room buzzes with gossip about recent raids from the Dreadwood and whispers of a growing cult activity in the outskirts of town",
+        chronicler_output=ChroniclerOutput(
+            scene_notes=SceneNotes(
+                player_characters=["Creb"],
+                non_player_characters=["Old Tom"],
+                players_characters_location=["Havenbrook", "the Silver Chalice"],
+                scene_details=[
+                    "The air is thick with smoke and the smell of spilled ale",
+                    "The sounds of raucous laughter and clinking tankards fill the space",
+                    "Old Tom stands behind the counter, methodically wiping down mugs as he keeps an eye on the rowdy crowd"
+                    "The room buzzes with gossip about recent raids from the Dreadwood and whispers of a growing cult activity in the outskirts of town",
+                ]
+            ),
+            campaign_facts=[
+                "Creb is a player character with a scarred face, battle-hardened frame, and haunted eyes",
+                "Creb is a grizzled veteran of the Dreadwood Wars",
+                "Old Tom is the weathered barkeep of the Silver Chalice",
+                "The Silver Chalice is a rough-and-tumble establishment in the heart of Havenbrook",
             ]
-        )
+        ),
     ),
     ChroniclerTrainingEntry(
         chronicler_input=ChroniclerInput(
@@ -98,17 +69,25 @@ Cassie, a lithe wood elf ranger with copper skin and dark hair, descends a narro
 
 The village center holds the Heart Tree, its massive trunk reaching skyward, where village elders gather to discuss matters. Nearby, children play in a cleared area while their parents work nearby, crafting bows and arrows or weaving baskets from supple branches. The village's quiet harmony is broken only by the calls of birds and the rustling of leaves.""",
         ),
-
-        scene_notes=SceneNotes(
-            player_characters=["Cassie"],
-            non_player_characters=[],
-            players_characters_location=["Brambletown"],
-            scene_details=[
-                "The morning sun filters through the canopy of ancient trees, dappling the forest floor with shifting patterns of light",
-                "Nearby, children play in a cleared area while their parents work nearby, crafting bows and arrows or weaving baskets from supple branches",
-                "The village's quiet harmony is broken only by the calls of birds and the rustling of leaves",
+        chronicler_output=ChroniclerOutput(
+            scene_notes=SceneNotes(
+                player_characters=["Cassie"],
+                non_player_characters=[],
+                players_characters_location=["Brambletown"],
+                scene_details=[
+                    "The morning sun filters through the canopy of ancient trees, dappling the forest floor with shifting patterns of light",
+                    "Nearby, children play in a cleared area while their parents work nearby, crafting bows and arrows or weaving baskets from supple branches",
+                    "The village's quiet harmony is broken only by the calls of birds and the rustling of leaves",
+                    "The sweet scent of wildflowers mixes with woodsmoke from cooking fires",
+                    "Elves move purposefully about their daily tasks, some greeting Cassie with warm smiles while others remain absorbed in their work"
+                ]
+            ),
+            campaign_facts=[
+                "Cassie is a wood elf ranger with copper skin and dark hair",
+                "Brambletown is a village is in a small clearing, surrouned by massive oaks and maples in the forest, with wooden walkways connecting rustic homes built into the trees, moss-covered stone paths weaving between them",
+                "The Heart Tree is a massive trunk in Brambletown reaching skyward where village elders gather to discuss matters",
             ]
-        )
+        ),
     ),
     ChroniclerTrainingEntry(
         chronicler_input=ChroniclerInput(
@@ -119,48 +98,29 @@ You stand at the helm of the Swift Serpent, a sleek frigate flying your Jolly Ro
 
 Your First Mate, the weathered Irishman James "BlackJack" Sullivan, stands ready at your side, his scarred face twisted into a predatory grin as he watches the merchant ship draw closer. The rest of your crew bustles about their stations, checking weapons and preparing for what promises to be an exciting afternoon. The merchant vessel's captain has spotted you and is frantically trying to change course, but your superior speed and the wind at your back will allow you to intercept him within minutes.""",
         ),
-        scene_notes=SceneNotes(
-            player_characters=["Raleigh \"Albatross\" Royal"],
-            non_player_characters=["James \"BlackJack\" Sullivan"],
-            players_characters_location=["the Carribbean", "off the coast of Tortuga", "on board the Swift Serpent"],
-            scene_details=[
-                "The salty spray splashes against your weathered face",
-                "Your crew of hardened cutthroats performs their duties with practiced efficiency",
-                "The wind is at your back, and the promise of plunder fills the air",
-                "James \"BlackJack\" Sullivan stands ready at your side, his scarred face twisted into a predatory grin as he watches the merchant ship draw closer",
-                "The merchant vessel's captain has spotted you and is frantically trying to change course, but your superior speed and the wind at your back will allow you to intercept him within minutes",
+        chronicler_output=ChroniclerOutput(
+            scene_notes=SceneNotes(
+                player_characters=["Raleigh \"Albatross\" Royal"],
+                non_player_characters=["James \"BlackJack\" Sullivan"],
+                players_characters_location=["the Carribbean", "off the coast of Tortuga", "on board the Swift Serpent"],
+                scene_details=[
+                    "The salty spray splashes against your weathered face",
+                    "You stand at the helm of the Swift Serpent, a sleek frigate flying your Jolly Roger, as it cuts through the azure waters off the coast of Tortuga"
+                    "Your crew of hardened cutthroats performs their duties with practiced efficiency",
+                    "The wind is at your back, and the promise of plunder fills the air",
+                    "James \"BlackJack\" Sullivan stands ready at your side, his scarred face twisted into a predatory grin as he watches the merchant ship draw closer",
+                    "The rest of your crew bustles about their stations, checking weapons and preparing for what promises to be an exciting afternoon",
+                    "The merchant vessel's captain has spotted you and is frantically trying to change course, but your superior speed and the wind at your back will allow you to intercept him within minutes",
+                ]
+            ),
+            campaign_facts=[
+                "Raleigh \"Albatross\" Royal is a notorious pirate captain with a reputation for ruthless efficiency and keen wit",
+                "Raleigh \"Albatross\" Royal commands the Swift Serpent",
+                "James \"BlackJack\" Sullivan is a weathered Irishman and the First Mate of Raleigh \"Albatross\" Royal",
+                "The Swift Serpent is a sleek frigate, a sleek frigate flying the Jolly Roger",
             ]
         ),
     ),
 ]
 
-model = OllamaLLM(model="mistral:7b-instruct", num_ctx=32000)
-
-def generate_llm_output():
-
-    try:
-        parser = PydanticOutputParser(pydantic_object=ChroniclerTrainingEntry)
-        prompt = PromptTemplate(
-            template=PROMPT_TEMPLATE,
-            input_variables=["examples"],
-            partial_variables={"format_instructions": parser.get_format_instructions()},
-        )
-
-        examplesStr = ""
-
-        for example in examples:
-            examplesStr += example.model_dump_json() + "\n---\n"
-
-        chain = prompt | model | parser
-        response  = chain.invoke({"examples": examplesStr})
-
-        entry = response
-        print(entry.model_dump_json(indent=2))
-        return entry
-
-    except Exception as e:
-        print(e)
-        return []
-
-
-generate_llm_output()
+Generator().generate(INITIAL_SCENE_PROMPT_TEMPLATE, ChroniclerTrainingEntry, initial_scene_examples, count=5)
